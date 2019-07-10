@@ -1,5 +1,5 @@
 const express = require('express')
-const mysql = require('mysql')
+const { find, list, deleteItem, addItem } = require('./utils')
 const app = express()
 var bodyParser = require('body-parser');
 
@@ -13,64 +13,6 @@ app.use('*', (req, res, next) => {
   res.header('Access-Control-Max-Age', '1000'); // 1000s之内，不需要再发送预请求进行验证了，时间内直接发正式请求
   next()
 })
-
-var connection = mysql.createConnection({
-  host: 'localhost',
-  user: 'root',
-  password: 'root',
-  database: 'starbucks' //数据库
-});
-
-connection.connect((error) => {
-  if (error) {
-    console.log('数据库连接失败,详情：', error)
-  } else {
-    console.log('数据库连接成功')
-  }
-})
-
-const find = (phone, password) => {
-  return new Promise((resolve, reject) => {
-    connection.query('select nickname from user where phone=? and password=?', [
-      phone, password
-    ], (error, res) => {
-      if (!error) {
-        console.log(phone, password)
-        resolve({ ...res[0] })
-      } else {
-        reject(error)
-      }
-    })
-  })
-}
-
-const sqlListToObject = (array) => {
-  return array.map((item) => {
-    const obj = {}
-    for (let key in item) {
-      try {
-        obj[key] = JSON.parse(item[key])
-      } catch (e) {
-        obj[key] = item[key]
-      }
-    }
-    return obj
-  })
-}
-
-const list = (type) => {
-  return new Promise((resolve, reject) => {
-    connection.query('select * from overtime where type=?', [
-      type
-    ], (error, res) => {
-      if (!error) {
-        resolve(sqlListToObject(res))
-      } else {
-        reject(error)
-      }
-    })
-  })
-}
 
 app.post('/login', async function(req, res) {
   let { username, password } = req.body
@@ -90,10 +32,8 @@ app.post('/login', async function(req, res) {
 })
 
 app.get('/getlist', async function(req, res) {
-  let { type } = req.query
-  const data = await list(type)
-  console.log(type)
-  console.log(data)
+  //let { type } = req.query
+  const data = await list()
   res.send(({
     code: 200,
     data: data,
@@ -101,11 +41,26 @@ app.get('/getlist', async function(req, res) {
   }))
 })
 
-// app.get('/getlist', async function(req, res) {
-//   let { type } = req.query
-//   //const list = await select({})
-//   console.log(list)
-// })
+app.post('/deleteItem', async function(req, res) {
+  let { applicationNumber } = req.body
+  const data = await deleteItem(applicationNumber)
+  res.send(({
+    code: 200,
+    data: data,
+    message: '删除成功'
+  }))  
+})
+
+app.post('/addItem', async function(req, res) {
+  let { applicationNumber } = req.body
+  const data = await addItem(applicationNumber)
+  console.log(applicationNumber)
+  res.send(({
+    code: 200,
+    data: data,
+    message: '增加成功'
+  }))  
+})
 
 const server = app.listen(8888, function() {
   console.log('成功')
