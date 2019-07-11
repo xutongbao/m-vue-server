@@ -22,36 +22,65 @@ let tokenHistory = []
 function getTokenAuth (token) {
   for (let i = 0; i < tokenHistory.length; i++) {
     if (tokenHistory[i].token === token) {
-      tokenHistory[i].lastTime = new Date().getTime()
+      if (tokenHistory[i].auth) {
+        tokenHistory[i].lastTime = new Date().getTime()
+      }
       return tokenHistory[i].auth
     }
   }
   return false;
 }
 
+function deleteTokenHistory(token) {
+  for (let i = 0; i < tokenHistory.length; i++) {
+    if (tokenHistory[i].token === token) {
+      tokenHistory.splice(i, 1)
+    }
+  }
+}
+
+// setInterval(() => {
+//   let now = new Date().getTime()
+//   for (let i = 0; i < tokenHistory.length; i++) {
+//     //1000等于1s
+//     if (now - tokenHistory[i].lastTime > 30000) {
+//       tokenHistory[i].auth = false
+//     }
+//   }
+//   console.log(tokenHistory)
+// }, 5000)
+
 setInterval(() => {
   let now = new Date().getTime()
   for (let i = 0; i < tokenHistory.length; i++) {
-    //1000等于1s
-    if (now - tokenHistory[i].lastTime > 30000) {
+    if (tokenHistory[i].auth && now - tokenHistory[i].lastTime > 30000) {
       tokenHistory[i].auth = false
     }
   }
   console.log(tokenHistory)
-}, 5000)
+}, 10000)
 
 //路由
+//登陆
 app.post('/login', async function(req, res) {
   let { username, password } = req.body
   const data = await find(username, password)
   console.log(data)
   if (data.nickname) {
-    let token = getID(6)
+    // let token = getID(6)
+    // tokenHistory.push({
+    //   token: token,
+    //   lastTime: new Date().getTime(),
+    //   auth: true
+    // })
+    let token = getID(10)
+
     tokenHistory.push({
       token: token,
       lastTime: new Date().getTime(),
       auth: true
     })
+
     res.send({
       code: 200,
       data: {
@@ -67,12 +96,16 @@ app.post('/login', async function(req, res) {
     })
   }
 })
+//获取加班列表数据
 app.get('/getlist', async function(req, res) {
   //let { type } = req.query
-  console.log(req.headers['authorization'])
+  //console.log(req.headers['authorization'])
   
   const data = await list()
-  let auth = getTokenAuth(req.headers['authorization'])
+  let token = req.headers['token']
+  console.log(token)
+  
+  let auth = getTokenAuth(token)
   console.log(auth)
   if (auth) {
     res.send(({
@@ -81,12 +114,14 @@ app.get('/getlist', async function(req, res) {
       message: '列表'
     }))
   } else {
+    deleteTokenHistory(token)
     res.send(({
       code: 403,
       message: '无权限'
     }))    
   }
 })
+//删除列表数据
 app.post('/deleteItem', async function(req, res) {
   let { applicationNumber } = req.body
   const data = await deleteItem(applicationNumber)
@@ -96,6 +131,7 @@ app.post('/deleteItem', async function(req, res) {
     message: '删除成功'
   }))  
 })
+//添加列表数据
 app.post('/addItem', async function(req, res) {
   let { applicationNumber, nickname } = req.body
   console.log(nickname)
@@ -107,6 +143,11 @@ app.post('/addItem', async function(req, res) {
     message: '增加成功'
   }))  
 })
+//修改列表数据
+// app.post('/updateItem', async function(req, res) {
+//   let { applicationNumber, nickname } = req.body
+//   const data = await 
+// })
 
 const server = app.listen(8888, function() {
   console.log('成功')
