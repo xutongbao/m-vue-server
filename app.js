@@ -14,15 +14,28 @@ app.use('*', (req, res, next) => {
   next()
 })
 
+function getID(length) {
+  return Number(Math.random().toString().substr(3, length) + Date.now()).toString(36);
+}
+let token = {
+}
 app.post('/login', async function(req, res) {
   let { username, password } = req.body
   const data = await find(username, password)
   console.log(data)
   if (data.nickname) {
+    token = {
+      value: getID(6),
+      auth: true
+    } 
+    setTimeout(() => {
+      //token.auth = false
+    }, 5000)
     res.send({
       code: 200,
       data: {
-        username: username
+        username: username,
+        token: token.value,
       },
       message: '登陆成功'
     })
@@ -36,12 +49,20 @@ app.post('/login', async function(req, res) {
 
 app.get('/getlist', async function(req, res) {
   //let { type } = req.query
+  console.log(req.header)
   const data = await list()
-  res.send(({
-    code: 200,
-    data: data,
-    message: '列表'
-  }))
+  if (token.auth === true) {
+    res.send(({
+      code: 200,
+      data: data,
+      message: '列表'
+    }))
+  } else {
+    res.send(({
+      code: 403,
+      message: '无权限'
+    }))    
+  }
 })
 
 app.post('/deleteItem', async function(req, res) {

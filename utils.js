@@ -4,7 +4,7 @@ var connection = mysql.createConnection({
   host: 'localhost',
   user: 'root',
   password: 'root',
-  database: 'xu' //数据库
+  database: 'demo' //数据库
 });
 
 connection.connect((error) => {
