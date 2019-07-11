@@ -21,7 +21,6 @@ const find = (phone, password) => {
       phone, password
     ], (error, res) => {
       if (!error) {
-        console.log(phone, password)
         resolve({ ...res[0] })
       } else {
         reject(error)
