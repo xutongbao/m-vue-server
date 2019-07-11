@@ -59,7 +59,7 @@ const list = () => {
 
 const deleteItem = (applicationNumber) => {
   return new Promise((resolve, reject) => {
-    connection.query('delete  from overtime where applicationNumber=?', [
+    connection.query('delete from overtime where applicationNumber=?', [
       applicationNumber
     ], (error, res) => {
       if (!error) {

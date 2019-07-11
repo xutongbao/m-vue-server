@@ -21,6 +21,9 @@ app.post('/login', async function(req, res) {
   if (data.nickname) {
     res.send({
       code: 200,
+      data: {
+        username: username
+      },
       message: '登陆成功'
     })
   } else {
