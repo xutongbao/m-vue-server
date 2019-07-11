@@ -55,8 +55,9 @@ app.post('/deleteItem', async function(req, res) {
 })
 
 app.post('/addItem', async function(req, res) {
-  let { applicationNumber } = req.body
-  const data = await addItem(applicationNumber)
+  let { applicationNumber, nickname } = req.body
+  console.log(nickname)
+  const data = await addItem(applicationNumber, nickname)
   console.log(applicationNumber)
   res.send(({
     code: 200,
