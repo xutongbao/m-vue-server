@@ -6,6 +6,10 @@ var bodyParser = require('body-parser');
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
+//token仓库
+let tokenHistory = []
+
+//允许跨域
 app.use('*', (req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Headers', 'Content-Type, Content-Length, Authorization, Accept, X-Requested-With , token');
@@ -14,11 +18,12 @@ app.use('*', (req, res, next) => {
   next()
 })
 
+//生成token
 function getID(length) {
   return Number(Math.random().toString().substr(3, length) + Date.now()).toString(36);
 }
-let tokenHistory = []
 
+//获取token是否过期
 function getTokenAuth (token) {
   for (let i = 0; i < tokenHistory.length; i++) {
     if (tokenHistory[i].token === token) {
@@ -31,6 +36,7 @@ function getTokenAuth (token) {
   return false;
 }
 
+//删除过期的token
 function deleteTokenHistory(token) {
   for (let i = 0; i < tokenHistory.length; i++) {
     if (tokenHistory[i].token === token) {
@@ -39,17 +45,7 @@ function deleteTokenHistory(token) {
   }
 }
 
-// setInterval(() => {
-//   let now = new Date().getTime()
-//   for (let i = 0; i < tokenHistory.length; i++) {
-//     //1000等于1s
-//     if (now - tokenHistory[i].lastTime > 30000) {
-//       tokenHistory[i].auth = false
-//     }
-//   }
-//   console.log(tokenHistory)
-// }, 5000)
-
+//定时检查token是否过期
 setInterval(() => {
   let now = new Date().getTime()
   for (let i = 0; i < tokenHistory.length; i++) {
@@ -57,22 +53,17 @@ setInterval(() => {
       tokenHistory[i].auth = false
     }
   }
-  console.log(tokenHistory)
+  if (tokenHistory.length) {
+    console.log(tokenHistory)
+  }
 }, 10000)
 
-//路由
 //登陆
 app.post('/login', async function(req, res) {
   let { username, password } = req.body
   const data = await find(username, password)
   console.log(data)
   if (data.nickname) {
-    // let token = getID(6)
-    // tokenHistory.push({
-    //   token: token,
-    //   lastTime: new Date().getTime(),
-    //   auth: true
-    // })
     let token = getID(10)
 
     tokenHistory.push({
@@ -99,7 +90,6 @@ app.post('/login', async function(req, res) {
 //获取加班列表数据
 app.get('/getlist', async function(req, res) {
   //let { type } = req.query
-  //console.log(req.headers['authorization'])
   
   const data = await list()
   let token = req.headers['token']
@@ -150,5 +140,5 @@ app.post('/addItem', async function(req, res) {
 // })
 
 const server = app.listen(8888, function() {
-  console.log('成功')
+  console.log('服务器启动成功，端口是8888')
 })
