@@ -17,25 +17,46 @@ app.use('*', (req, res, next) => {
 function getID(length) {
   return Number(Math.random().toString().substr(3, length) + Date.now()).toString(36);
 }
-let token = {
+let tokenHistory = []
+
+function getTokenAuth (token) {
+  for (let i = 0; i < tokenHistory.length; i++) {
+    if (tokenHistory[i].token === token) {
+      tokenHistory[i].lastTime = new Date().getTime()
+      return tokenHistory[i].auth
+    }
+  }
+  return false;
 }
+
+setInterval(() => {
+  let now = new Date().getTime()
+  for (let i = 0; i < tokenHistory.length; i++) {
+    //1000等于1s
+    if (now - tokenHistory[i].lastTime > 30000) {
+      tokenHistory[i].auth = false
+    }
+  }
+  console.log(tokenHistory)
+}, 5000)
+
+//路由
 app.post('/login', async function(req, res) {
   let { username, password } = req.body
   const data = await find(username, password)
   console.log(data)
   if (data.nickname) {
-    token = {
-      value: getID(6),
+    let token = getID(6)
+    tokenHistory.push({
+      token: token,
+      lastTime: new Date().getTime(),
       auth: true
-    } 
-    setTimeout(() => {
-      //token.auth = false
-    }, 5000)
+    })
     res.send({
       code: 200,
       data: {
         username: username,
-        token: token.value,
+        token: token,
       },
       message: '登陆成功'
     })
@@ -46,12 +67,14 @@ app.post('/login', async function(req, res) {
     })
   }
 })
-
 app.get('/getlist', async function(req, res) {
   //let { type } = req.query
-  console.log(req.header)
+  console.log(req.headers['authorization'])
+  
   const data = await list()
-  if (token.auth === true) {
+  let auth = getTokenAuth(req.headers['authorization'])
+  console.log(auth)
+  if (auth) {
     res.send(({
       code: 200,
       data: data,
@@ -64,7 +87,6 @@ app.get('/getlist', async function(req, res) {
     }))    
   }
 })
-
 app.post('/deleteItem', async function(req, res) {
   let { applicationNumber } = req.body
   const data = await deleteItem(applicationNumber)
@@ -74,7 +96,6 @@ app.post('/deleteItem', async function(req, res) {
     message: '删除成功'
   }))  
 })
-
 app.post('/addItem', async function(req, res) {
   let { applicationNumber, nickname } = req.body
   console.log(nickname)
