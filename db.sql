@@ -4,8 +4,8 @@ SET FOREIGN_KEY_CHECKS = 0;
 DROP TABLE IF EXISTS `user`;
 CREATE TABLE `user` (
   `uid` varchar(100) COLLATE utf8_unicode_ci NOT NULL COMMENT '用户id',
-  `password` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL COMMENT '密码',
   `nickname` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL COMMENT '用户昵称',
+	`password` varchar(1000) COLLATE utf8_unicode_ci DEFAULT NULL COMMENT '密码',
   PRIMARY KEY (`uid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
@@ -14,7 +14,6 @@ BEGIN;
 INSERT INTO `user` VALUES ('21ma84sk2tkw00021ma84sk2tkw000', 'admin', 'admin');
 INSERT INTO `user` VALUES ('3a9f12z1ey200003a9f12z1ey20000', 'xutongbao', 'xutongbao');
 COMMIT;
-
 
 DROP TABLE IF EXISTS `overtime`;
 CREATE TABLE `overtime` (
