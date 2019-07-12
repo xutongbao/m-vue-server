@@ -15,10 +15,11 @@ connection.connect((error) => {
   }
 })
 
-const find = (phone, password) => {
+//登陆
+const find = (nickname, password) => {
   return new Promise((resolve, reject) => {
-    connection.query('select nickname from user where phone=? and password=?', [
-      phone, password
+    connection.query('select nickname from user where nickname=? and password=?', [
+      nickname, password
     ], (error, res) => {
       if (!error) {
         resolve({ ...res[0] })
@@ -27,6 +28,35 @@ const find = (phone, password) => {
       }
     })
   })
+}
+
+//检查用户名是否被占用
+const registerCheckUsername = (nickname) => {
+  return new Promise((resolve, reject) => {
+    connection.query('select nickname from user where nickname=?', [
+      nickname
+    ], (error, res) => {
+      if (!error) {
+        resolve({ ...res[0] })
+      } else {
+        reject(error)
+      }
+    })
+  })
+}
+
+//注册
+const register = (uid, username, password) => {
+  return new Promise((resolve, reject) => {
+    connection.query(`INSERT INTO user VALUES ('${uid}', '${username}', '${password}');`, [
+    ], (error, res) => {
+      if (!error) {
+        resolve(true)
+      } else {
+        reject(error)
+      }
+    })
+  })   
 }
 
 const sqlListToObject = (array) => {
@@ -85,6 +115,8 @@ const addItem = (applicationNumber, nickname) => {
 
 module.exports = {
   find,
+  registerCheckUsername,
+  register,
   list,
   deleteItem,
   addItem,
