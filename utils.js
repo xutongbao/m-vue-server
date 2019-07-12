@@ -16,10 +16,10 @@ connection.connect((error) => {
 })
 
 //登陆
-const find = (nickname, password) => {
+const find = (nickname) => {
   return new Promise((resolve, reject) => {
-    connection.query('select nickname from user where nickname=? and password=?', [
-      nickname, password
+    connection.query('select nickname, password from user where nickname=?', [
+      nickname
     ], (error, res) => {
       if (!error) {
         resolve({ ...res[0] })
