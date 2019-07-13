@@ -29,23 +29,9 @@ const find = (username) => {
 }
 
 //检查用户名是否被占用
-// const registerCheckUsername = (nickname) => {
-//   return new Promise((resolve, reject) => {
-//     connection.query('select nickname from user where nickname=?', [
-//       nickname
-//     ], (error, res) => {
-//       if (!error) {
-//         resolve({ ...res[0] })
-//       } else {
-//         reject(error)
-//       }
-//     })
-//   })
-// }
-
 const registerCheckUsername = (username) => {
   return new Promise((resolve, reject) => {
-    connection.query(`select username from user where username='${username}'`, [],
+    connection.query(`select username, email from user where username='${username}'`, [],
       (error, res) => {
         if (!error) {
           resolve({...res[0]})
@@ -58,29 +44,14 @@ const registerCheckUsername = (username) => {
 
 
 //注册
-// const register = (uid, username, password) => {
-//   return new Promise((resolve, reject) => {
-//     connection.query(`INSERT INTO user VALUES ('${uid}', '${username}', '${password}');`, [
-//     ], (error, res) => {
-//       if (!error) {
-//         resolve(true)
-//       } else {
-//         reject(error)
-//       }
-//     })
-//   })   
-// }
-
-const register = (uid, username, password) => {
+const register = (uid, username, password, email) => {
   return new Promise((resolve, reject) => {
-    connection.query(`insert into user values('${uid}', '${username}', '${password}')`, (error, res) => {
-      console.log(error)
-      console.log(res.affectedRows)
-      if (res.affectedRows === 1) {
+    connection.query(`insert into user values('${uid}', '${username}', '${password}', '${email}')`, (error, res) => {
+      if (!error) {
         resolve(true)
       } else {
         reject(error)
-      }
+      }      
     })
   })
 }

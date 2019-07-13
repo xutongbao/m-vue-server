@@ -2,22 +2,21 @@ const express = require('express')
 const JSEncrypt = require('node-jsencrypt');
 const svgCaptcha = require('svg-captcha')
 const redis = require('redis')
+const nodemailer = require("nodemailer");
 const { find, registerCheckUsername, register, list, deleteItem, addItem } = require('./utils')
-const app = express()
-var bodyParser = require('body-parser');
-
-const client = redis.createClient();
-
-client.on("error", function (err) {
-    console.log("Error " + err);
-});
-
-app.use(bodyParser.urlencoded({ extended: false }));
-app.use(bodyParser.json());
 
 //token仓库
 let tokenHistory = []
-let captchaIdHistory = {}
+const app = express()
+var bodyParser = require('body-parser');
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json());
+
+const client = redis.createClient();
+//如果没有启动redis,会报错，启动redis方法，在cd到redis的安装目录，执行redis-server.exe redis.windows.conf
+client.on("error", function (err) {
+    console.log("Error " + err);
+});
 
 //允许跨域
 app.use('*', (req, res, next) => {
@@ -27,6 +26,43 @@ app.use('*', (req, res, next) => {
   res.header('Access-Control-Max-Age', '1000'); // 1000s之内，不需要再发送预请求进行验证了，时间内直接发正式请求
   next()
 })
+
+// async..await is not allowed in global scope, must use a wrapper
+async function sendEmail(username, email, url){
+
+  // Generate test SMTP service account from ethereal.email
+  // Only needed if you don't have a real mail account for testing
+  let testAccount = await nodemailer.createTestAccount();
+
+  // create reusable transporter object using the default SMTP transport
+  let transporter = nodemailer.createTransport({
+    host : 'smtp.sina.cn',
+    // service: 'qq',
+    // port: 465,
+    //secure: false, // true for 465, false for other ports
+    secureConnection: true, // 使用了 SSL
+    auth: {
+      user: '13642061747@sina.cn', // generated ethereal user
+      pass: 'xu1702h' // generated ethereal password
+    }
+  });
+
+  // send mail with defined transport object
+  let info = await transporter.sendMail({
+    from: '<13642061747@sina.cn>', // sender address
+    to: email, // list of receivers
+    subject: "重新设置密码", // Subject line
+    html: `<b>${username}您好！您可以点击下面的链接设置新的密码</b>
+    <a href=${url}>${url}</a>`// html body
+  });
+
+  console.log("Message sent: %s", info.messageId);
+  // Message sent: <b658f8ca-6296-ccf4-8306-87d57a0b4321@example.com>
+
+  // Preview only available when sending through an Ethereal account
+  console.log("Preview URL: %s", nodemailer.getTestMessageUrl(info));
+  // Preview URL: https://ethereal.email/message/WaQKMgKddxQDoou...
+}
 
 //生成token
 function getID(length) {
@@ -127,6 +163,8 @@ app.post('/login', async function (req, res) {
   }
 
 })
+
+//验证码
 app.get('/captcha', function (req, res) {
   var captcha = svgCaptcha.create({});
   let text = captcha.text.toLowerCase()
@@ -136,7 +174,6 @@ app.get('/captcha', function (req, res) {
     captcha: captcha.data,
     text: text
   }
-  captchaIdHistory[captchaId] = text
   client.set(captchaId, text, 'EX', 60)  //60秒后验证码过期知道
   client.get(captchaId, function (err,v) {
       console.log("图形验证码的值存入redis，值为：",v);
@@ -148,9 +185,31 @@ app.get('/captcha', function (req, res) {
   });
 });
 
+app.get('/forgot_password', async function (req, res) {
+  let { username } = req.query
+  console.log('发送邮件')
+  const user = await registerCheckUsername(username)
+  if (!user.email) {
+    res.send({
+      code: 400,
+      data: {},
+      message: '用戶名不存在'
+    });
+    return
+  }
+  console.log(user.email)
+  await sendEmail(username, user.email, 'http://localhost:8080/login').catch(console.error);
+  console.log('发送邮件成功')
+  res.send({
+    code: 200,
+    data: {},
+    message: '邮件已经发送，请到邮箱里点击链接重置密码！'
+  });
+});
+
 //注册
 app.post('/register', async function (req, res) {
-  let { username, password } = req.body
+  let { username, password, email } = req.body
   console.log(username)
   const checkeUsername = await registerCheckUsername(username)
   console.log(checkeUsername)
@@ -161,7 +220,7 @@ app.post('/register', async function (req, res) {
     })
   } else {
     let uid = getID(10)
-    const data = await register(uid, username, password)
+    const data = await register(uid, username, password, email)
     console.log(data)
     if (data) {
       res.send({

@@ -4,8 +4,9 @@ SET FOREIGN_KEY_CHECKS = 0;
 DROP TABLE IF EXISTS `user`;
 CREATE TABLE `user` (
   `uid` varchar(100) COLLATE utf8_unicode_ci NOT NULL COMMENT '用户id',
-  `nickname` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL COMMENT '用户昵称',
+  `username` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL COMMENT '用户昵称',
 	`password` varchar(1000) COLLATE utf8_unicode_ci DEFAULT NULL COMMENT '密码',
+  `email` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL COMMENT '邮箱',
   PRIMARY KEY (`uid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
