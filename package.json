@@ -15,6 +15,7 @@
     "express": "^4.17.1",
     "express-session": "^1.16.2",
     "jsencrypt": "^3.0.0-rc.1",
+    "jwt-simple": "^0.5.6",
     "mysql": "^2.17.1",
     "nedb-session-store": "^1.1.2",
     "node-jsencrypt": "^1.0.0",

@@ -3,10 +3,13 @@ const JSEncrypt = require('node-jsencrypt');
 const svgCaptcha = require('svg-captcha')
 const redis = require('redis')
 const nodemailer = require("nodemailer");
-const { find, registerCheckUsername, register, list, deleteItem, addItem } = require('./utils')
+const jwt = require('jwt-simple')
+const { find, getUserInfoByUsername, register, resetPassword, list, deleteItem, addItem } = require('./utils')
 
 //token仓库
 let tokenHistory = []
+//token加密的key
+let secret = 'xxx';
 const app = express()
 var bodyParser = require('body-parser');
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -25,7 +28,7 @@ app.use('*', (req, res, next) => {
   res.header('Access-Control-Allow-Methods', 'PUT, POST, GET, DELETE, OPTIONS'); //设置方法
   res.header('Access-Control-Max-Age', '1000'); // 1000s之内，不需要再发送预请求进行验证了，时间内直接发正式请求
   next()
-})
+}) 
 
 // async..await is not allowed in global scope, must use a wrapper
 async function sendEmail(username, email, url){
@@ -185,10 +188,11 @@ app.get('/captcha', function (req, res) {
   });
 });
 
+//忘记密码
 app.get('/forgot_password', async function (req, res) {
   let { username } = req.query
   console.log('发送邮件')
-  const user = await registerCheckUsername(username)
+  const user = await getUserInfoByUsername(username)
   if (!user.email) {
     res.send({
       code: 400,
@@ -198,7 +202,10 @@ app.get('/forgot_password', async function (req, res) {
     return
   }
   console.log(user.email)
-  await sendEmail(username, user.email, 'http://localhost:8080/login').catch(console.error);
+
+  var token = jwt.encode(user.uid, secret);
+  console.log(token)
+  await sendEmail(username, user.email, `http://localhost:8080/reset_password/${token}`).catch(console.error);
   console.log('发送邮件成功')
   res.send({
     code: 200,
@@ -207,11 +214,31 @@ app.get('/forgot_password', async function (req, res) {
   });
 });
 
+//重置密码
+app.post('/reset_password', async function (req, res) {
+  let { uid, password } = req.body
+  uid = jwt.decode(uid, secret);
+  console.log(uid)
+  console.log(password)
+  let data = await resetPassword(uid, password)
+  if (data) {
+    res.send({
+      code: 200,
+      message: '重置密码成功'
+    })    
+  } else {
+    res.send({
+      code: 400,
+      message: '重置密码失败'
+    })       
+  }
+})
+
 //注册
 app.post('/register', async function (req, res) {
   let { username, password, email } = req.body
   console.log(username)
-  const checkeUsername = await registerCheckUsername(username)
+  const checkeUsername = await getUserInfoByUsername(username)
   console.log(checkeUsername)
   if (checkeUsername.username) {
     res.send({

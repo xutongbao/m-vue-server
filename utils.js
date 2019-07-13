@@ -29,9 +29,9 @@ const find = (username) => {
 }
 
 //检查用户名是否被占用
-const registerCheckUsername = (username) => {
+const getUserInfoByUsername = (username) => {
   return new Promise((resolve, reject) => {
-    connection.query(`select username, email from user where username='${username}'`, [],
+    connection.query(`select uid, username, email from user where username='${username}'`, [],
       (error, res) => {
         if (!error) {
           resolve({...res[0]})
@@ -41,7 +41,6 @@ const registerCheckUsername = (username) => {
       })
   })
 }
-
 
 //注册
 const register = (uid, username, password, email) => {
@@ -54,6 +53,19 @@ const register = (uid, username, password, email) => {
       }      
     })
   })
+}
+
+//重置密码
+const resetPassword = (uid, password) => {
+  return new Promise((resolve, reject) => {
+    connection.query(`update user set password = '${password}' where uid='${uid}' `, (error, res) => {
+      if (!error) {
+        resolve(true)
+      } else {
+        reject(error)
+      }      
+    })
+  })  
 }
 
 const sqlListToObject = (array) => {
@@ -112,8 +124,9 @@ const addItem = (applicationNumber, nickname) => {
 
 module.exports = {
   find,
-  registerCheckUsername,
+  getUserInfoByUsername,
   register,
+  resetPassword,
   list,
   deleteItem,
   addItem,
