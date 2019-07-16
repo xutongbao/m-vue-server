@@ -4,6 +4,7 @@ const svgCaptcha = require('svg-captcha')
 const redis = require('redis')
 const nodemailer = require("nodemailer");
 const jwt = require('jwt-simple')
+const {wxData} = require('./data.js')
 const { find, getUserInfoByUsername, register, resetPassword, list, deleteItem, addItem } = require('./utils')
 
 //token仓库
@@ -14,6 +15,8 @@ const app = express()
 var bodyParser = require('body-parser');
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
+
+app.use(express.static("public"));
 
 const client = redis.createClient();
 //如果没有启动redis,会报错，启动redis方法，在cd到redis的安装目录，执行redis-server.exe redis.windows.conf
@@ -175,7 +178,6 @@ app.get('/captcha', function (req, res) {
   let temp = {
     captchaId:　captchaId,
     captcha: captcha.data,
-    text: text
   }
   client.set(captchaId, text, 'EX', 60)  //60秒后验证码过期知道
   client.get(captchaId, function (err,v) {
@@ -314,6 +316,14 @@ app.post('/addItem', async function (req, res) {
 //   let { applicationNumber, nickname } = req.body
 //   const data = await 
 // })
+
+app.get('/wx/list', async function(req, res) {
+  res.send(({
+    code: 200,
+    data: wxData,
+    message: '列表'
+  }))
+})
 
 const server = app.listen(8888, function () {
   console.log('服务器启动成功，端口是8888')
