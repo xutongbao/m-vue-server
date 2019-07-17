@@ -4,7 +4,7 @@ const svgCaptcha = require('svg-captcha')
 const redis = require('redis')
 const nodemailer = require("nodemailer");
 const jwt = require('jwt-simple')
-const {wxData} = require('./data.js')
+const {wxData, wxMailList} = require('./data.js')
 const { find, getUserInfoByUsername, register, resetPassword, list, deleteItem, addItem } = require('./utils')
 
 //token仓库
@@ -321,6 +321,14 @@ app.get('/wx/list', async function(req, res) {
   res.send(({
     code: 200,
     data: wxData,
+    message: '列表'
+  }))
+})
+
+app.get('/wx/mail_list', async function(req, res) {
+  res.send(({
+    code: 200,
+    data: wxMailList,
     message: '列表'
   }))
 })
