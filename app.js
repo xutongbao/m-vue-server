@@ -4,7 +4,7 @@ const svgCaptcha = require('svg-captcha')
 const redis = require('redis')
 const nodemailer = require("nodemailer");
 const jwt = require('jwt-simple')
-const {wxData, wxMailList} = require('./data.js')
+const {wxData, wxMailList, day4ListData} = require('./data.js')
 const { find, getUserInfoByUsername, register, resetPassword, list, deleteItem, addItem } = require('./utils')
 
 //token仓库
@@ -317,6 +317,8 @@ app.post('/addItem', async function (req, res) {
 //   const data = await 
 // })
 
+
+//微信小程序，day2，女装、男装、童装接口
 app.get('/wx/list', async function(req, res) {
   res.send(({
     code: 200,
@@ -325,11 +327,35 @@ app.get('/wx/list', async function(req, res) {
   }))
 })
 
+//微信小程序，day3,通讯录接口
 app.get('/wx/mail_list', async function(req, res) {
   res.send(({
     code: 200,
     data: wxMailList,
     message: '列表'
+  }))
+})
+
+//微信小程序，day4，列表可以跳转到详情接口，使用mock创建大量的数据
+app.get('/wx/day4/list/', async function(req, res) {
+  let {page, limit} = req.query
+  let startIndex = (page - 1) * limit
+  let endIndex = startIndex + (limit - 0)
+  console.log(page, limit)
+  console.log(startIndex, endIndex)
+  res.send(({
+    code: 200,
+    data: day4ListData.detail.slice(startIndex, endIndex),
+    message: '列表'
+  }))
+})
+
+app.get('/wx/day4/detail/', async function(req, res) {
+  let {id} = req.query
+  res.send(({
+    code: 200,
+    data: day4ListData.detail[id],
+    message: '详情'
   }))
 })
 
