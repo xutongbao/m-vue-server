@@ -4,7 +4,7 @@ const svgCaptcha = require('svg-captcha')
 const redis = require('redis')
 const nodemailer = require("nodemailer");
 const jwt = require('jwt-simple')
-const {wxData, wxMailList, day4ListData} = require('./data.js')
+const {wxData, wxMailList, day4ListData, day5FootList} = require('./data.js')
 const { find, getUserInfoByUsername, register, resetPassword, list, deleteItem, addItem } = require('./utils')
 
 //token仓库
@@ -349,12 +349,21 @@ app.get('/wx/day4/list/', async function(req, res) {
     message: '列表'
   }))
 })
-
+//微信小程序，day4，详情接口
 app.get('/wx/day4/detail/', async function(req, res) {
   let {id} = req.query
   res.send(({
     code: 200,
     data: day4ListData.detail[id],
+    message: '详情'
+  }))
+})
+
+app.get('/wx/day5/food/', async function(req, res) {
+  let {id} = req.query
+  res.send(({
+    code: 200,
+    data: day5FootList,
     message: '详情'
   }))
 })
