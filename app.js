@@ -170,6 +170,15 @@ app.post('/login', async function (req, res) {
 
 })
 
+app.get('/login_out', async function(req, res) {
+  let token = req.headers['token']
+  deleteTokenHistory(token)
+  res.send({
+    code: 200,
+    message: '退出成功'
+  })
+})
+
 //验证码
 app.get('/captcha', function (req, res) {
   var captcha = svgCaptcha.create({});
