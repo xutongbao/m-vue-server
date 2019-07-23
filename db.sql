@@ -46,6 +46,21 @@ UPDATE overtime SET nickname = '新名字' WHERE applicationNumber = '12pnraanms
 COMMIT;
 
 
-SELECT * FROM overtime WHERE nickname like '%名%'
+SELECT * FROM overtime WHERE nickname like '%名%';
 
+DROP TABLE IF EXISTS `upload`;
+CREATE TABLE `upload` (
+  `uid` varchar(100) COLLATE utf8_unicode_ci NOT NULL COMMENT 'ID',
+  `path` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL COMMENT '路径',
+	`originalname` varchar(1000) COLLATE utf8_unicode_ci DEFAULT NULL COMMENT '原始文件名',
+  `create_time` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL COMMENT '创建时间',
+  PRIMARY KEY (`uid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+
+select count(*) from upload;
+
+select * from upload order by create_time DESC
+select * from upload order by create_time ASC
+select * from upload  order by create_time ASC limit 0,10 
 

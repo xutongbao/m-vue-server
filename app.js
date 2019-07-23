@@ -4,8 +4,31 @@ const svgCaptcha = require('svg-captcha')
 const redis = require('redis')
 const nodemailer = require("nodemailer");
 const jwt = require('jwt-simple')
-const {wxData, wxMailList, day4ListData, day5FootList} = require('./data.js')
-const { find, getUserInfoByUsername, register, resetPassword, list, deleteItem, addItem } = require('./utils')
+const multer = require('multer')
+const { wxData, wxMailList, day4ListData, day5FootList } = require('./data.js')
+const { 
+  find, 
+  getUserInfoByUsername, 
+  register, 
+  resetPassword, 
+  list, 
+  deleteItem, 
+  addItem,
+  uploadAdd,
+  getUploadList,
+} = require('./utils')
+
+var storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    // 接收到文件后输出的保存路径（若不存在则需要创建）
+    cb(null, 'public/images/');
+  },
+  filename: function (req, file, cb) {
+    // 将保存文件名设置为 时间戳 + 文件原始名，比如 151342376785-123.jpg
+    cb(null, Date.now() + "-" + file.originalname);
+  }
+});
+var upload = multer({ dest: 'public/images/', storage: storage });
 
 //token仓库
 let tokenHistory = []
@@ -21,7 +44,7 @@ app.use(express.static("public"));
 const client = redis.createClient();
 //如果没有启动redis,会报错，启动redis方法，在cd到redis的安装目录，执行redis-server.exe redis.windows.conf
 client.on("error", function (err) {
-    console.log("Error " + err);
+  console.log("Error " + err);
 });
 
 //允许跨域
@@ -31,10 +54,10 @@ app.use('*', (req, res, next) => {
   res.header('Access-Control-Allow-Methods', 'PUT, POST, GET, DELETE, OPTIONS'); //设置方法
   res.header('Access-Control-Max-Age', '1000'); // 1000s之内，不需要再发送预请求进行验证了，时间内直接发正式请求
   next()
-}) 
+})
 
 // async..await is not allowed in global scope, must use a wrapper
-async function sendEmail(username, email, url){
+async function sendEmail(username, email, url) {
 
   // Generate test SMTP service account from ethereal.email
   // Only needed if you don't have a real mail account for testing
@@ -42,7 +65,7 @@ async function sendEmail(username, email, url){
 
   // create reusable transporter object using the default SMTP transport
   let transporter = nodemailer.createTransport({
-    host : 'smtp.sina.cn',
+    host: 'smtp.sina.cn',
     // service: 'qq',
     // port: 465,
     //secure: false, // true for 465, false for other ports
@@ -116,11 +139,11 @@ app.post('/login', async function (req, res) {
 
   let token = req.headers['token']
 
-  let redisCaptcha = await new Promise( (resolve) => {
-    client.get(token,function(err, res){
+  let redisCaptcha = await new Promise((resolve) => {
+    client.get(token, function (err, res) {
       return resolve(res);
     });
-  });    
+  });
   console.log('login', redisCaptcha)
   if (captcha && captcha === redisCaptcha) {
   } else {
@@ -128,7 +151,7 @@ app.post('/login', async function (req, res) {
       code: 400,
       message: '验证码错误或过期'
     })
-    return    
+    return
   }
   password = password.replace(/%2B/g, '+')
   let decrypt = new JSEncrypt()
@@ -170,7 +193,7 @@ app.post('/login', async function (req, res) {
 
 })
 
-app.get('/login_out', async function(req, res) {
+app.get('/login_out', async function (req, res) {
   let token = req.headers['token']
   deleteTokenHistory(token)
   res.send({
@@ -185,13 +208,13 @@ app.get('/captcha', function (req, res) {
   let text = captcha.text.toLowerCase()
   captchaId = getID(10)
   let temp = {
-    captchaId:　captchaId,
+    captchaId: captchaId,
     captcha: captcha.data,
   }
   client.set(captchaId, text, 'EX', 60)  //60秒后验证码过期知道
-  client.get(captchaId, function (err,v) {
-      console.log("图形验证码的值存入redis，值为：",v);
-  })  
+  client.get(captchaId, function (err, v) {
+    console.log("图形验证码的值存入redis，值为：", v);
+  })
   res.send({
     code: 200,
     data: temp,
@@ -236,12 +259,12 @@ app.post('/reset_password', async function (req, res) {
     res.send({
       code: 200,
       message: '重置密码成功'
-    })    
+    })
   } else {
     res.send({
       code: 400,
       message: '重置密码失败'
-    })       
+    })
   }
 })
 
@@ -272,6 +295,58 @@ app.post('/register', async function (req, res) {
       })
     }
   }
+})
+
+//文件上传
+app.post('/upload', upload.single('file'), async function (req, res, next) {
+  var file = req.file;
+  console.log('文件类型：%s', file.mimetype);
+  console.log('原始文件名：%s', file.originalname);
+  console.log('文件大小：%s', file.size);
+  console.log('文件保存路径：%s', file.path);
+  console.log(file)
+  let uid = getID(10)
+  let createTime = new Date().getTime()
+  const data = await uploadAdd(
+    uid, 
+    `http://localhost:8888/images/${file.filename}`, 
+    file.originalname,
+    createTime)
+  if (data) {
+    res.send(({
+      code: 200,
+      data: file,
+      message: '上传成功'
+    }))
+  } else {
+    res.send(({
+      code: 400,
+      data: file,
+      message: '上传失败'
+    }))
+  }
+})
+
+app.get('/upload/list', async function (req, res) {
+  let {page, size} = req.query
+  start = (page - 1) * size
+  const data = await getUploadList(start, size)
+  console.log(data)
+  let token = req.headers['token']
+  let auth = getTokenAuth(token)
+  if (auth) {
+    res.send(({
+      code: 200,
+      data: data,
+      message: '上传文件列表'
+    }))
+  } else {
+    deleteTokenHistory(token)
+    res.send(({
+      code: 403,
+      message: '无权限'
+    }))
+  }  
 })
 
 //获取加班列表数据
@@ -328,7 +403,7 @@ app.post('/addItem', async function (req, res) {
 
 
 //微信小程序，day2，女装、男装、童装接口
-app.get('/wx/list', async function(req, res) {
+app.get('/wx/list', async function (req, res) {
   res.send(({
     code: 200,
     data: wxData,
@@ -337,7 +412,7 @@ app.get('/wx/list', async function(req, res) {
 })
 
 //微信小程序，day3,通讯录接口
-app.get('/wx/mail_list', async function(req, res) {
+app.get('/wx/mail_list', async function (req, res) {
   res.send(({
     code: 200,
     data: wxMailList,
@@ -346,8 +421,8 @@ app.get('/wx/mail_list', async function(req, res) {
 })
 
 //微信小程序，day4，列表可以跳转到详情接口，使用mock创建大量的数据
-app.get('/wx/day4/list/', async function(req, res) {
-  let {page, limit} = req.query
+app.get('/wx/day4/list/', async function (req, res) {
+  let { page, limit } = req.query
   let startIndex = (page - 1) * limit
   let endIndex = startIndex + (limit - 0)
   console.log(page, limit)
@@ -359,8 +434,8 @@ app.get('/wx/day4/list/', async function(req, res) {
   }))
 })
 //微信小程序，day4，详情接口
-app.get('/wx/day4/detail/', async function(req, res) {
-  let {id} = req.query
+app.get('/wx/day4/detail/', async function (req, res) {
+  let { id } = req.query
   res.send(({
     code: 200,
     data: day4ListData.detail[id],
@@ -368,14 +443,16 @@ app.get('/wx/day4/detail/', async function(req, res) {
   }))
 })
 
-app.get('/wx/day5/food/', async function(req, res) {
-  let {id} = req.query
+app.get('/wx/day5/food/', async function (req, res) {
+  let { id } = req.query
   res.send(({
     code: 200,
     data: day5FootList,
     message: '详情'
   }))
 })
+
+//
 
 const server = app.listen(8888, function () {
   console.log('服务器启动成功，端口是8888')

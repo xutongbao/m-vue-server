@@ -4,7 +4,8 @@ var connection = mysql.createConnection({
   host: 'localhost',
   user: 'root',
   password: 'root',
-  database: 'demo' //数据库
+  database: 'demo', //数据库
+  multipleStatements: true,
 });
 
 connection.connect((error) => {
@@ -68,6 +69,7 @@ const resetPassword = (uid, password) => {
   })  
 }
 
+//转化成对象
 const sqlListToObject = (array) => {
   return array.map((item) => {
     const obj = {}
@@ -82,6 +84,7 @@ const sqlListToObject = (array) => {
   })
 }
 
+//获取overtime条目
 const list = () => {
   return new Promise((resolve, reject) => {
     connection.query('select * from overtime', [
@@ -95,6 +98,7 @@ const list = () => {
   })
 }
 
+//删除overtime条目
 const deleteItem = (applicationNumber) => {
   return new Promise((resolve, reject) => {
     connection.query('delete from overtime where applicationNumber=?', [
@@ -109,6 +113,7 @@ const deleteItem = (applicationNumber) => {
   })  
 }
 
+//增加overtime条目
 const addItem = (applicationNumber, nickname) => {
   return new Promise((resolve, reject) => {
     connection.query(`INSERT INTO overtime VALUES ('${applicationNumber}', '${nickname}', '2', '2019-05-23 00:00:00', '2019-05-24 00:00:00')`, [
@@ -122,6 +127,32 @@ const addItem = (applicationNumber, nickname) => {
   })   
 }
 
+//上传图片
+const uploadAdd = (uid, path, originalname, createTime) => {
+  return new Promise((resolve, reject) => {
+    connection.query(`insert into upload values('${uid}', '${path}', '${originalname}', '${createTime}')`, (error, res) => {
+      if (!error) {
+        resolve(res)
+      } else {
+        reject(error)
+      }      
+    })
+  })
+}
+
+const getUploadList = (start, size) => {
+  return new Promise((resolve, reject) => {
+    connection.query(`select * from upload order by create_time DESC limit ${start},${size};select count(*) as total from upload;`, [
+    ], (error, res) => {
+      if (!error) {
+        resolve({ list: sqlListToObject(res[0]), ...res[1][0]})
+      } else {
+        reject(error)
+      }
+    })
+  })
+}
+
 module.exports = {
   find,
   getUserInfoByUsername,
@@ -130,4 +161,6 @@ module.exports = {
   list,
   deleteItem,
   addItem,
+  uploadAdd,
+  getUploadList,
 }
