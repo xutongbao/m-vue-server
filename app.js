@@ -206,7 +206,7 @@ app.get('/login_out', async function (req, res) {
 })
 
 //验证码
-app.get('/captcha_old', function (req, res) {
+app.get('/captcha', function (req, res) {
   var captcha = svgCaptcha.create({});
   let text = captcha.text.toLowerCase()
   captchaId = getID(10)
@@ -224,28 +224,6 @@ app.get('/captcha_old', function (req, res) {
     message: '验证码'
   });
 });
-
-app.get('/captcha', function(req, res) {
-  let captcha = svgCaptcha.create({
-    size: 6,
-    noise: 2,
-  })
-  let text = captcha.text.toLowerCase()
-  console.log(text)
-  let captchaId = getID(10)
-  console.log(captchaId)
-  
-  client.set(captchaId, text, 'EX', 60)
-  let data = {
-    captchaId,
-    captcha: captcha.data
-  }
-  res.send({
-    code: 200,
-    data,
-    message: '图形验证码'
-  })
-})
 
 //忘记密码
 app.get('/forgot_password', async function (req, res) {
@@ -399,21 +377,11 @@ app.post('/add_banner', async function (req, res) {
 
 app.get('/banner/list', async function (req, res) {
   const data = await getBannerList()
-  let token = req.headers['token']
-  let auth = getTokenAuth(token)
-  if (auth) {
-    res.send(({
-      code: 200,
-      data: data,
-      message: 'banner列表'
-    }))
-  } else {
-    deleteTokenHistory(token)
-    res.send(({
-      code: 403,
-      message: '无权限'
-    }))
-  }  
+  res.send(({
+    code: 200,
+    data: data,
+    message: 'banner列表'
+  }))
 })
 
 app.post('/banner/delete', async function(req, res) {
