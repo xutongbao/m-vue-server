@@ -5,14 +5,16 @@ const redis = require('redis')
 const nodemailer = require("nodemailer");
 const jwt = require('jwt-simple')
 const multer = require('multer')
+const pug = require('pug')
+const fs = require('fs')
 const { wxData, wxMailList, day4ListData, day5FootList } = require('./data.js')
-const { 
-  find, 
-  getUserInfoByUsername, 
-  register, 
-  resetPassword, 
-  list, 
-  deleteItem, 
+const {
+  find,
+  getUserInfoByUsername,
+  register,
+  resetPassword,
+  list,
+  deleteItem,
   addItem,
   uploadAdd,
   getUploadList,
@@ -41,8 +43,8 @@ const app = express()
 var bodyParser = require('body-parser');
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
-
 app.use(express.static("public"));
+app.set('view engine', 'pug')
 
 const client = redis.createClient();
 //如果没有启动redis,会报错，启动redis方法，在cd到redis的安装目录，执行redis-server.exe redis.windows.conf
@@ -196,6 +198,7 @@ app.post('/login', async function (req, res) {
 
 })
 
+//退出
 app.get('/login_out', async function (req, res) {
   let token = req.headers['token']
   deleteTokenHistory(token)
@@ -207,7 +210,8 @@ app.get('/login_out', async function (req, res) {
 
 //验证码
 app.get('/captcha', function (req, res) {
-  var captcha = svgCaptcha.create({});
+  var captcha = svgCaptcha.create();
+  console.log(captcha)
   let text = captcha.text.toLowerCase()
   captchaId = getID(10)
   let temp = {
@@ -311,8 +315,8 @@ app.post('/upload', upload.single('file'), async function (req, res, next) {
   let uid = getID(10)
   let createTime = new Date().getTime()
   const data = await uploadAdd(
-    uid, 
-    `http://localhost:8888/images/${file.filename}`, 
+    uid,
+    `http://localhost:8888/images/${file.filename}`,
     file.originalname,
     createTime)
   if (data) {
@@ -330,8 +334,9 @@ app.post('/upload', upload.single('file'), async function (req, res, next) {
   }
 })
 
+//获取上传列表
 app.get('/upload/list', async function (req, res) {
-  let {page, size} = req.query
+  let { page, size } = req.query
   start = (page - 1) * size
   const data = await getUploadList(start, size)
   console.log(data)
@@ -349,11 +354,12 @@ app.get('/upload/list', async function (req, res) {
       code: 403,
       message: '无权限'
     }))
-  }  
+  }
 })
 
+//添加banner
 app.post('/add_banner', async function (req, res) {
-  let {path, remarks} = req.body
+  let { path, remarks } = req.body
   let uid = getID(10)
   let createTime = new Date().getTime()
   const data = await addBanner(uid, path, remarks, createTime)
@@ -372,9 +378,10 @@ app.post('/add_banner', async function (req, res) {
       code: 403,
       message: '无权限'
     }))
-  }    
+  }
 })
 
+//获取banner
 app.get('/banner/list', async function (req, res) {
   const data = await getBannerList()
   res.send(({
@@ -384,7 +391,8 @@ app.get('/banner/list', async function (req, res) {
   }))
 })
 
-app.post('/banner/delete', async function(req, res) {
+//删除banner
+app.post('/banner/delete', async function (req, res) {
   let { uid } = req.body
   const data = await deleteBanner(uid)
   let token = req.headers['token']
@@ -401,9 +409,35 @@ app.post('/banner/delete', async function(req, res) {
       code: 403,
       message: '无权限'
     }))
-  }    
+  }
 })
 
+//生成html文件
+app.post('/add/article', function (req, res) {
+  let { htmlJson } = req.body
+
+  //res.render('index', { title: 'Hey', message: 'Hello there!' })
+  const compiledFunction = pug.compileFile('views/index.pug');
+  let indexHtml = compiledFunction({ title: 'Hey', message: 'Hello there!', headerImagePath: htmlJson.headerImagePath})
+  console.log(indexHtml)
+
+  let fileName = (new Date()).getTime() + '.html'
+  fs.writeFile(`./public/article/${fileName}`, indexHtml, function (err) {
+    if (err) {
+      throw err;
+    }
+  });
+
+  let data = {
+    fileName: fileName,
+    articlePath: `http://localhost:8888/article/${fileName}`
+  }
+  res.send(({
+    code: 200,
+    data: data,
+    message: '添加文章成功'
+  }))
+})
 
 //获取加班列表数据
 app.get('/getlist', async function (req, res) {
@@ -451,12 +485,6 @@ app.post('/addItem', async function (req, res) {
     message: '增加成功'
   }))
 })
-//修改列表数据
-// app.post('/updateItem', async function(req, res) {
-//   let { applicationNumber, nickname } = req.body
-//   const data = await 
-// })
-
 
 //微信小程序，day2，女装、男装、童装接口
 app.get('/wx/list', async function (req, res) {
@@ -489,6 +517,7 @@ app.get('/wx/day4/list/', async function (req, res) {
     message: '列表'
   }))
 })
+
 //微信小程序，day4，详情接口
 app.get('/wx/day4/detail/', async function (req, res) {
   let { id } = req.query
@@ -499,6 +528,7 @@ app.get('/wx/day4/detail/', async function (req, res) {
   }))
 })
 
+//西少爷点餐，购物车
 app.get('/wx/day5/food/', async function (req, res) {
   let { id } = req.query
   res.send(({
@@ -507,8 +537,6 @@ app.get('/wx/day5/food/', async function (req, res) {
     message: '详情'
   }))
 })
-
-//
 
 const server = app.listen(8888, function () {
   console.log('服务器启动成功，端口是8888')
