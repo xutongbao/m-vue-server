@@ -153,6 +153,47 @@ const getUploadList = (start, size) => {
   })
 }
 
+//添加banner
+const addBanner = (uid, path, remarks, createTime) => {
+  return new Promise((resolve, reject) => {
+    connection.query(`insert into banner values('${uid}', '${path}', '${remarks}', '${createTime}')`, (error, res) => {
+      if (!error) {
+        resolve(res)
+      } else {
+        reject(error)
+      }      
+    })
+  })
+}
+
+//获取banner列表
+const getBannerList = () => {
+  return new Promise((resolve, reject) => {
+    connection.query(`select * from banner order by create_time DESC`, [
+    ], (error, res) => {
+      if (!error) {
+        resolve({ list: sqlListToObject(res) })
+      } else {
+        reject(error)
+      }
+    })
+  })
+}
+
+//删除banner
+const deleteBanner = (uid) => {
+  return new Promise((resolve, reject) => {
+    connection.query(`delete from banner where uid='${uid}'`, [], (error, res) => {
+      if (!error) {
+        resolve(res)
+      } else {
+        reject(error)
+      }
+    })
+  })  
+}
+
+
 module.exports = {
   find,
   getUserInfoByUsername,
@@ -163,4 +204,7 @@ module.exports = {
   addItem,
   uploadAdd,
   getUploadList,
+  addBanner,
+  getBannerList,
+  deleteBanner,
 }

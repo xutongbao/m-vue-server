@@ -57,6 +57,15 @@ CREATE TABLE `upload` (
   PRIMARY KEY (`uid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
+DROP TABLE IF EXISTS `banner`;
+CREATE TABLE `banner` (
+  `uid` varchar(100) COLLATE utf8_unicode_ci NOT NULL COMMENT 'ID',
+  `path` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL COMMENT '路径',
+	`remarks` varchar(1000) COLLATE utf8_unicode_ci DEFAULT NULL COMMENT '备注',
+  `create_time` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL COMMENT '创建时间',
+  PRIMARY KEY (`uid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
 
 select count(*) from upload;
 
