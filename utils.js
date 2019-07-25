@@ -193,6 +193,34 @@ const deleteBanner = (uid) => {
   })  
 }
 
+//添加文章
+const addArticle = (uid, title, path, createTime) => {
+  return new Promise((resolve, reject) => {
+    connection.query(`insert into article values('${uid}', '${title}', '${path}', '${createTime}')`, (error, res) => {
+      if (!error) {
+        resolve(res)
+      } else {
+        reject(error)
+      }      
+    })
+  })
+}
+
+//获取文章列表
+const getArticleList = () => {
+  return new Promise((resolve, reject) => {
+    connection.query(`select * from article order by create_time DESC`, [
+    ], (error, res) => {
+      if (!error) {
+        resolve({ list: sqlListToObject(res) })
+      } else {
+        reject(error)
+      }
+    })
+  })
+}
+
+
 
 module.exports = {
   find,
@@ -207,4 +235,6 @@ module.exports = {
   addBanner,
   getBannerList,
   deleteBanner,
+  addArticle,
+  getArticleList,
 }

@@ -21,6 +21,8 @@ const {
   addBanner,
   getBannerList,
   deleteBanner,
+  addArticle,
+  getArticleList,
 } = require('./utils')
 
 var storage = multer.diskStorage({
@@ -413,12 +415,12 @@ app.post('/banner/delete', async function (req, res) {
 })
 
 //生成html文件
-app.post('/add/article', function (req, res) {
+app.post('/add/article', async function (req, res) {
   let { htmlJson } = req.body
 
   //res.render('index', { title: 'Hey', message: 'Hello there!' })
   const compiledFunction = pug.compileFile('views/index.pug');
-  let indexHtml = compiledFunction({ title: 'Hey', message: 'Hello there!', headerImagePath: htmlJson.headerImagePath})
+  let indexHtml = compiledFunction({ title: htmlJson.articleTitle, headerImagePath: htmlJson.headerImagePath})
   console.log(indexHtml)
 
   let fileName = (new Date()).getTime() + '.html'
@@ -428,14 +430,35 @@ app.post('/add/article', function (req, res) {
     }
   });
 
-  let data = {
-    fileName: fileName,
-    articlePath: `http://localhost:8888/article/${fileName}`
+  let articlePath = `http://localhost:8888/article/${fileName}`
+  let uid = getID(10)
+  let createTime = new Date().getTime()
+  let sqlData = await addArticle(uid, htmlJson.articleTitle, articlePath, createTime)
+  if (sqlData) {
+    let data = {
+      fileName,
+      articlePath
+    }
+    res.send(({
+      code: 200,
+      data: data,
+      message: '添加文章成功'
+    }))
+  } else {
+    res.send(({
+      code: 400,
+      message: '添加文章失败'
+    }))    
   }
+})
+
+//获取文章列表
+app.get('/article/list', async function (req, res) {
+  const data = await getArticleList()
   res.send(({
     code: 200,
     data: data,
-    message: '添加文章成功'
+    message: '文章列表'
   }))
 })
 

@@ -12,8 +12,8 @@ CREATE TABLE `user` (
 
 
 BEGIN;
-INSERT INTO `user` VALUES ('21ma84sk2tkw00021ma84sk2tkw000', 'admin', 'admin');
-INSERT INTO `user` VALUES ('3a9f12z1ey200003a9f12z1ey20000', 'xutongbao', 'xutongbao');
+INSERT INTO `user` VALUES ('21ma84sk2tkw00021ma84sk2tkw000', 'admin', 'admin', '11@qq.com');
+INSERT INTO `user` VALUES ('3a9f12z1ey200003a9f12z1ey20000', 'xutongbao', 'xutongbao', '12@qq.com');
 COMMIT;
 
 DROP TABLE IF EXISTS `overtime`;
@@ -62,6 +62,15 @@ CREATE TABLE `banner` (
   `uid` varchar(100) COLLATE utf8_unicode_ci NOT NULL COMMENT 'ID',
   `path` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL COMMENT '路径',
 	`remarks` varchar(1000) COLLATE utf8_unicode_ci DEFAULT NULL COMMENT '备注',
+  `create_time` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL COMMENT '创建时间',
+  PRIMARY KEY (`uid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+DROP TABLE IF EXISTS `article`;
+CREATE TABLE `article` (
+  `uid` varchar(100) COLLATE utf8_unicode_ci NOT NULL COMMENT 'ID',
+  `title` varchar(1000) COLLATE utf8_unicode_ci DEFAULT NULL COMMENT '标题',
+  `path` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL COMMENT '路径',
   `create_time` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL COMMENT '创建时间',
   PRIMARY KEY (`uid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
