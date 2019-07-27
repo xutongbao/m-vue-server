@@ -69,8 +69,10 @@ CREATE TABLE `banner` (
 DROP TABLE IF EXISTS `article`;
 CREATE TABLE `article` (
   `uid` varchar(100) COLLATE utf8_unicode_ci NOT NULL COMMENT 'ID',
-  `title` varchar(1000) COLLATE utf8_unicode_ci DEFAULT NULL COMMENT '标题',
+  `title` varchar(100) COLLATE utf8_unicode_ci DEFAULT NULL COMMENT '标题',
+  `file_name` varchar(100) COLLATE utf8_unicode_ci DEFAULT NULL COMMENT '文件名字',
   `path` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL COMMENT '路径',
+  `content` varchar(1000) COLLATE utf8_unicode_ci DEFAULT NULL COMMENT '内容',
   `create_time` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL COMMENT '创建时间',
   PRIMARY KEY (`uid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;

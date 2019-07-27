@@ -194,9 +194,9 @@ const deleteBanner = (uid) => {
 }
 
 //添加文章
-const addArticle = (uid, title, path, createTime) => {
+const addArticle = (uid, title, fileName, path, content, createTime) => {
   return new Promise((resolve, reject) => {
-    connection.query(`insert into article values('${uid}', '${title}', '${path}', '${createTime}')`, (error, res) => {
+    connection.query(`insert into article values('${uid}', '${title}', '${fileName}', '${path}', '${content}', '${createTime}')`, (error, res) => {
       if (!error) {
         resolve(res)
       } else {
@@ -213,6 +213,34 @@ const getArticleList = () => {
     ], (error, res) => {
       if (!error) {
         resolve({ list: sqlListToObject(res) })
+      } else {
+        reject(error)
+      }
+    })
+  })
+}
+
+//获取文章详情
+const getArticleDetail = (id) => {
+  return new Promise((resolve, reject) => {
+    connection.query(`select * from article where uid='${id}'`, [
+    ], (error, res) => {
+      if (!error) {
+        resolve(sqlListToObject(res))
+      } else {
+        reject(error)
+      }
+    })
+  })
+}
+
+//获取文章详情
+const editArticleDetail = (id, title, content) => {
+  return new Promise((resolve, reject) => {
+    connection.query(`update article set title='${title}', content='${content}' where uid='${id}'`, [
+    ], (error, res) => {
+      if (!error) {
+        resolve(res)
       } else {
         reject(error)
       }
@@ -237,4 +265,6 @@ module.exports = {
   deleteBanner,
   addArticle,
   getArticleList,
+  getArticleDetail,
+  editArticleDetail,
 }

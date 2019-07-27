@@ -23,6 +23,8 @@ const {
   deleteBanner,
   addArticle,
   getArticleList,
+  getArticleDetail,
+  editArticleDetail,
 } = require('./utils')
 
 var storage = multer.diskStorage({
@@ -35,7 +37,7 @@ var storage = multer.diskStorage({
     cb(null, Date.now() + "-" + file.originalname);
   }
 });
-var upload = multer({ dest: 'public/images/', storage: storage });
+var upload = multer({ storage: storage });
 
 //token仓库
 let tokenHistory = []
@@ -131,14 +133,33 @@ function deleteTokenHistory(token) {
 setInterval(() => {
   let now = new Date().getTime()
   for (let i = 0; i < tokenHistory.length; i++) {
-    if (tokenHistory[i].auth && now - tokenHistory[i].lastTime > 300000) {
+    if (tokenHistory[i].auth && now - tokenHistory[i].lastTime > 3000000) {
       tokenHistory[i].auth = false
     }
   }
   if (tokenHistory.length) {
-    console.log(tokenHistory)
+    //console.log(tokenHistory)
   }
 }, 10000)
+
+function editArticle (htmlJson, fileName) {
+  const compiledFunction = pug.compileFile('views/index.pug');
+  let indexHtml = compiledFunction({ 
+    title: htmlJson.articleTitle, 
+    headerImagePath: htmlJson.headerImagePath
+  })
+  console.log(indexHtml)
+  if (!fileName) {
+    fileName = (new Date()).getTime() + '.html'
+  }
+  //let fileName = (new Date()).getTime() + '.html'
+  fs.writeFile(`./public/article/${fileName}`, indexHtml, function (err) {
+    if (err) {
+      throw err;
+    }
+  });
+
+}
 
 //登陆
 app.post('/login', async function (req, res) {
@@ -213,7 +234,6 @@ app.get('/login_out', async function (req, res) {
 //验证码
 app.get('/captcha', function (req, res) {
   var captcha = svgCaptcha.create();
-  console.log(captcha)
   let text = captcha.text.toLowerCase()
   captchaId = getID(10)
   let temp = {
@@ -418,9 +438,11 @@ app.post('/banner/delete', async function (req, res) {
 app.post('/add/article', async function (req, res) {
   let { htmlJson } = req.body
 
-  //res.render('index', { title: 'Hey', message: 'Hello there!' })
   const compiledFunction = pug.compileFile('views/index.pug');
-  let indexHtml = compiledFunction({ title: htmlJson.articleTitle, headerImagePath: htmlJson.headerImagePath})
+  let indexHtml = compiledFunction({ 
+    title: htmlJson.articleTitle, 
+    headerImagePath: htmlJson.headerImagePath
+  })
   console.log(indexHtml)
 
   let fileName = (new Date()).getTime() + '.html'
@@ -433,7 +455,14 @@ app.post('/add/article', async function (req, res) {
   let articlePath = `http://localhost:8888/article/${fileName}`
   let uid = getID(10)
   let createTime = new Date().getTime()
-  let sqlData = await addArticle(uid, htmlJson.articleTitle, articlePath, createTime)
+  let sqlData = await addArticle(
+    uid, 
+    htmlJson.articleTitle, 
+    fileName, 
+    articlePath, 
+    JSON.stringify(htmlJson), 
+    createTime)
+
   if (sqlData) {
     let data = {
       fileName,
@@ -461,6 +490,29 @@ app.get('/article/list', async function (req, res) {
     message: '文章列表'
   }))
 })
+
+//通过id获取文章
+app.get('/article_detail', async function (req, res) {
+  let {id} = req.query
+  const data = await getArticleDetail(id)
+  res.send(({
+    code: 200,
+    data: data,
+    message: '文章详情'
+  }))
+})
+
+//编辑文章
+app.post('/article_edit', async function (req, res) {
+  let {articleId, title, fileName, htmlJson} = req.body
+  const data = await editArticleDetail(articleId, title, JSON.stringify(htmlJson))
+  editArticle(htmlJson, fileName)
+  res.send(({
+    code: 200,
+    message: '编辑文章成功'
+  }))
+})
+
 
 //获取加班列表数据
 app.get('/getlist', async function (req, res) {
