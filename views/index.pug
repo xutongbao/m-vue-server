@@ -12,7 +12,9 @@ html
           each item in list
             case item.type 
               when 'p'
-                p.m-paragraph-text=item.text     
+                p.m-paragraph-text=item.text    
+              when 'p-strong'
+                p.m-paragraph-text-strong=item.text    
               when 'title-level-1'
                 div.m-title-level-1=item.text
                 div.m-division
