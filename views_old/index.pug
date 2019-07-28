@@ -1,0 +1,97 @@
+doctype html
+html
+  include head.pug
+  body(class=flg ? 'm-test' : '')
+    img(src=headerImagePath)
+    div #{name}的代码
+    a(href=baidu) 百度
+    |
+    |
+    a(class='m-button ' + btn href=baidu) 百度
+    input(
+      type='checkbox'
+      name="agreement"
+      checked
+      value='同意'
+    )
+    input(data-json=`
+      {
+        "非常": "长的",
+        "数据": true        
+      }
+    `
+      value='xu'
+    )
+    div(class='div-class' '(click)'='play()')
+    div(unescaped!="<code>")
+    a( class=classes style={color: 'red', background: 'green'}) 链接
+    a.bang(class=classes class=['bing']) class
+    a(class={active: currentUrl === '/about'} href='/about') About
+    a.button 类
+    .content
+    a#main-link id
+    #content
+    div#foo(data-bar="foo")&attributes({'data-foo': 'bar'})
+    div#foo(data-bar="foo")&attributes(attributes)
+    case friends
+      when 0: p 您没有朋友
+      when 1: p 您有一个朋友
+      default: p 您有 #{friends} 个朋友
+    div 代码
+    - for(var i = 0; i < 3; i++)
+      li item
+    -
+      var list = ["Uno", "Dos", "Tres",
+              "Cuatro", "Cinco", "Seis"]
+    each item in list
+      li= item
+    p= '这个代码被 <转义> 了！'
+    p!= '这段文字 <strong>没有</strong> 被转义！'
+    // 一些内容
+    //- 这行不会出现在结果里
+    //-
+      给模板写的注释
+      随便写多少字
+      都没关系。
+    //
+      给生成的 HTML 写的注释
+      随便写多少字
+      都没关系。
+    - var user = { description: 'foo bar baz' }
+    - var authorised = false
+    #user
+      if user.description
+        h2.green 描述
+        p.description= user.description
+      else if authorised
+        h2.blue 描述
+        p.description.
+          用户没有添加描述。
+          不写点什么吗……
+      else
+        h2.red 描述
+        p.description 用户没有描述      
+    div.m-warp div
+    include foot.pug
+    script
+      include script.js
+    script(src='/common/js/jquery.min.js')
+    script(src='/js/index.js')
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

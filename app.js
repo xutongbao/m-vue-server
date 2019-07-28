@@ -144,17 +144,14 @@ setInterval(() => {
 
 function editArticle (htmlJson, fileName) {
   const compiledFunction = pug.compileFile('views/index.pug');
-  let indexHtml = compiledFunction({ 
-    title: htmlJson.articleTitle, 
-    headerImagePath: htmlJson.headerImagePath,
-    name: 'xu',
-    baidu: 'http://www.baidu.com',
-    flg: true, //控制body标签的样式
-    btn: 'm-btn active',
-    classes: ['foo', 'bar', 'baz'],
-    currentUrl: '/about',
-    attributes: {class: 'baz'},
-    friends: 1
+  let indexHtml = compiledFunction({
+    ...htmlJson,
+    // list: [
+    //   {
+    //     type: 'title-level-1',
+    //     text: '活动规则：'
+    //   }
+    // ]
   })
   fs.writeFile(`./public/article/${fileName}`, indexHtml, function (err) {
     if (err) {
@@ -440,21 +437,7 @@ app.post('/banner/delete', async function (req, res) {
 //生成html文件
 app.post('/add/article', async function (req, res) {
   let { htmlJson } = req.body
-
-  // const compiledFunction = pug.compileFile('views/index.pug');
-  // let indexHtml = compiledFunction({ 
-  //   title: htmlJson.articleTitle, 
-  //   headerImagePath: htmlJson.headerImagePath
-  // })
-  // console.log(indexHtml)
-
   let fileName = (new Date()).getTime() + '.html'
-  // fs.writeFile(`./public/article/${fileName}`, indexHtml, function (err) {
-  //   if (err) {
-  //     throw err;
-  //   }
-  // });
-
   editArticle(htmlJson, fileName)
 
   let articlePath = `http://localhost:8888/article/${fileName}`
