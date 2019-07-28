@@ -146,13 +146,16 @@ function editArticle (htmlJson, fileName) {
   const compiledFunction = pug.compileFile('views/index.pug');
   let indexHtml = compiledFunction({ 
     title: htmlJson.articleTitle, 
-    headerImagePath: htmlJson.headerImagePath
+    headerImagePath: htmlJson.headerImagePath,
+    name: 'xu',
+    baidu: 'http://www.baidu.com',
+    flg: true, //控制body标签的样式
+    btn: 'm-btn active',
+    classes: ['foo', 'bar', 'baz'],
+    currentUrl: '/about',
+    attributes: {class: 'baz'},
+    friends: 1
   })
-  console.log(indexHtml)
-  if (!fileName) {
-    fileName = (new Date()).getTime() + '.html'
-  }
-  //let fileName = (new Date()).getTime() + '.html'
   fs.writeFile(`./public/article/${fileName}`, indexHtml, function (err) {
     if (err) {
       throw err;
@@ -438,19 +441,21 @@ app.post('/banner/delete', async function (req, res) {
 app.post('/add/article', async function (req, res) {
   let { htmlJson } = req.body
 
-  const compiledFunction = pug.compileFile('views/index.pug');
-  let indexHtml = compiledFunction({ 
-    title: htmlJson.articleTitle, 
-    headerImagePath: htmlJson.headerImagePath
-  })
-  console.log(indexHtml)
+  // const compiledFunction = pug.compileFile('views/index.pug');
+  // let indexHtml = compiledFunction({ 
+  //   title: htmlJson.articleTitle, 
+  //   headerImagePath: htmlJson.headerImagePath
+  // })
+  // console.log(indexHtml)
 
   let fileName = (new Date()).getTime() + '.html'
-  fs.writeFile(`./public/article/${fileName}`, indexHtml, function (err) {
-    if (err) {
-      throw err;
-    }
-  });
+  // fs.writeFile(`./public/article/${fileName}`, indexHtml, function (err) {
+  //   if (err) {
+  //     throw err;
+  //   }
+  // });
+
+  editArticle(htmlJson, fileName)
 
   let articlePath = `http://localhost:8888/article/${fileName}`
   let uid = getID(10)

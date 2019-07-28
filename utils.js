@@ -1,20 +1,34 @@
 const mysql = require('mysql')
+let connection = null
 
-var connection = mysql.createConnection({
-  host: 'localhost',
-  user: 'root',
-  password: 'root',
-  database: 'demo', //数据库
-  multipleStatements: true,
-});
+const handleDisconnection = () => {
+  connection = mysql.createConnection({
+    host: 'localhost',
+    user: 'root',
+    password: 'root',
+    database: 'demo', //数据库
+    multipleStatements: true,
+  });
+  
+  connection.connect((error) => {
+    if (error) {
+      console.log('数据库连接失败,详情：', error)
+    } else {
+      console.log('数据库连接成功')
+    }
+  })
 
-connection.connect((error) => {
-  if (error) {
-    console.log('数据库连接失败,详情：', error)
-  } else {
-    console.log('数据库连接成功')
-  }
-})
+  connection.on('error', function(err) {
+    if (err.code === 'PROTOCOL_CONNECTION_LOST') {
+      handleDisconnection()
+    } else {
+      throw err
+    }
+  })
+}
+handleDisconnection()
+
+
 
 //登陆
 const find = (username) => {
