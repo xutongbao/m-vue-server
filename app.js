@@ -381,10 +381,10 @@ app.get('/upload/list', async function (req, res) {
 
 //添加banner
 app.post('/add_banner', async function (req, res) {
-  let { path, remarks } = req.body
+  let { path, href, remarks } = req.body
   let uid = getID(10)
   let createTime = new Date().getTime()
-  const data = await addBanner(uid, path, remarks, createTime)
+  const data = await addBanner(uid, path, href, remarks, createTime)
   console.log(data)
   let token = req.headers['token']
   let auth = getTokenAuth(token)

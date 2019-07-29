@@ -60,7 +60,8 @@ CREATE TABLE `upload` (
 DROP TABLE IF EXISTS `banner`;
 CREATE TABLE `banner` (
   `uid` varchar(100) COLLATE utf8_unicode_ci NOT NULL COMMENT 'ID',
-  `path` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL COMMENT '路径',
+  `path` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL COMMENT '图片路径',
+  `href` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL COMMENT 'banner跳转链接',
 	`remarks` varchar(1000) COLLATE utf8_unicode_ci DEFAULT NULL COMMENT '备注',
   `create_time` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL COMMENT '创建时间',
   PRIMARY KEY (`uid`)
@@ -72,7 +73,7 @@ CREATE TABLE `article` (
   `title` varchar(100) COLLATE utf8_unicode_ci DEFAULT NULL COMMENT '标题',
   `file_name` varchar(100) COLLATE utf8_unicode_ci DEFAULT NULL COMMENT '文件名字',
   `path` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL COMMENT '路径',
-  `content` varchar(1000) COLLATE utf8_unicode_ci DEFAULT NULL COMMENT '内容',
+  `content` varchar(21000) COLLATE utf8_unicode_ci DEFAULT NULL COMMENT '内容',
   `create_time` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL COMMENT '创建时间',
   PRIMARY KEY (`uid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;

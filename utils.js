@@ -1,6 +1,7 @@
 const mysql = require('mysql')
 let connection = null
 
+//链接数据库，失败自动重新链接
 const handleDisconnection = () => {
   connection = mysql.createConnection({
     host: 'localhost',
@@ -28,7 +29,20 @@ const handleDisconnection = () => {
 }
 handleDisconnection()
 
-
+//转化成对象
+const sqlListToObject = (array) => {
+  return array.map((item) => {
+    const obj = {}
+    for (let key in item) {
+      try {
+        obj[key] = JSON.parse(item[key])
+      } catch (e) {
+        obj[key] = item[key]
+      }
+    }
+    return obj
+  })
+}
 
 //登陆
 const find = (username) => {
@@ -81,21 +95,6 @@ const resetPassword = (uid, password) => {
       }      
     })
   })  
-}
-
-//转化成对象
-const sqlListToObject = (array) => {
-  return array.map((item) => {
-    const obj = {}
-    for (let key in item) {
-      try {
-        obj[key] = JSON.parse(item[key])
-      } catch (e) {
-        obj[key] = item[key]
-      }
-    }
-    return obj
-  })
 }
 
 //获取overtime条目
@@ -168,9 +167,9 @@ const getUploadList = (start, size) => {
 }
 
 //添加banner
-const addBanner = (uid, path, remarks, createTime) => {
+const addBanner = (uid, path, href, remarks, createTime) => {
   return new Promise((resolve, reject) => {
-    connection.query(`insert into banner values('${uid}', '${path}', '${remarks}', '${createTime}')`, (error, res) => {
+    connection.query(`insert into banner values('${uid}', '${path}', '${href}', '${remarks}', '${createTime}')`, (error, res) => {
       if (!error) {
         resolve(res)
       } else {
@@ -261,8 +260,6 @@ const editArticleDetail = (id, title, content) => {
     })
   })
 }
-
-
 
 module.exports = {
   find,
